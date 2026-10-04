@@ -1,0 +1,20 @@
+{
+  "name": "email-shirshu",
+  "version": "1.0.0",
+  "description": "Web scraper that generates email of a employee based off their company's website",
+  "homepage": "https://github.com/Plasmatronics/Email-Shirshu#readme",
+  "bugs": {
+    "url": "https://github.com/Plasmatronics/Email-Shirshu/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Plasmatronics/Email-Shirshu.git"
+  },
+  "license": "ISC",
+  "author": "Nicholas Bruno",
+  "type": "module",
+  "main": "index.ts",
+  "scripts": {
+    "test": "npm run test"
+  }
+}
