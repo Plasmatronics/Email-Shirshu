@@ -2,13 +2,13 @@
   "name": "email-sniffer",
   "version": "1.0.0",
   "description": "Web scraper that generates email of a employee based off their company's website",
-  "homepage": "https://github.com/Plasmatronics/Email-Shirshu#readme",
+  "homepage": "https://github.com/Plasmatronics/Email-Sniffer#readme",
   "bugs": {
-    "url": "https://github.com/Plasmatronics/Email-Shirshu/issues"
+    "url": "https://github.com/Plasmatronics/Email-Sniffer/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Plasmatronics/Email-Shirshu.git"
+    "url": "git+https://github.com/Plasmatronics/Email-Sniffer.git"
   },
   "license": "ISC",
   "author": "Nicholas Bruno",
