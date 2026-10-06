@@ -14,9 +14,17 @@
   "author": "Nicholas Bruno",
   "type": "module",
   "main": "index.ts",
-  "scripts": {
-    "test": "npm run test"
-  },
+	"scripts": {
+		"start": "tsx server.ts",
+		"dev": "tsx watch server.ts",
+		"test": "vitest",
+		"test:unit": "vitest run --exclude '**/*.integration.test.ts'",
+		"test:integration": "vitest run --config vitest.integration.config.ts",
+		"typecheck": "tsc --noEmit",
+		"lint": "eslint .",
+		"format": "prettier --write .",
+		"format:check": "prettier --check ."
+	},
   "dependencies": {
     "dotenv": "^18.0.5",
     "zod": "^4.6.5"
