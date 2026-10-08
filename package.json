@@ -14,19 +14,21 @@
   "author": "Nicholas Bruno",
   "type": "module",
   "main": "index.ts",
-	"scripts": {
-		"start": "tsx server.ts",
-		"dev": "tsx watch server.ts",
-		"test": "vitest",
-		"test:unit": "vitest run --exclude '**/*.integration.test.ts' --passWithNoTests",
-		"test:integration": "vitest run --config vitest.integration.config.ts  --passWithNoTests",
-		"typecheck": "tsc --noEmit",
-		"lint": "eslint .",
-		"format": "prettier --write .",
-		"format:check": "prettier --check ."
-	},
+  "scripts": {
+    "start": "tsx server.ts",
+    "dev": "tsx watch server.ts",
+    "test": "vitest",
+    "test:unit": "vitest run --exclude '**/*.integration.test.ts' --passWithNoTests",
+    "test:integration": "vitest run --config vitest.integration.config.ts  --passWithNoTests",
+    "prepare": "husky",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
   "dependencies": {
     "dotenv": "^18.0.5",
+    "mnemonist": "^0.40.5",
     "zod": "^4.6.5"
   },
   "devDependencies": {
@@ -35,6 +37,7 @@
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.13.0",
+    "husky": "^9.1.7",
     "jiti": "^2.7.0",
     "prettier": "^3.9.9",
     "tsx": "^4.23.15",
