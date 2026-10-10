@@ -1,49 +1,59 @@
 {
-  "name": "email-sniffer",
-  "version": "1.0.0",
-  "description": "Web scraper that generates email of a employee based off their company's website",
-  "homepage": "https://github.com/Plasmatronics/Email-Sniffer#readme",
-  "bugs": {
-    "url": "https://github.com/Plasmatronics/Email-Sniffer/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Plasmatronics/Email-Sniffer.git"
-  },
-  "license": "ISC",
-  "author": "Nicholas Bruno",
-  "type": "module",
-  "main": "index.ts",
-  "scripts": {
-    "start": "tsx server.ts",
-    "dev": "tsx watch server.ts",
-    "test": "vitest",
-    "test:unit": "vitest run --exclude '**/*.integration.test.ts' --passWithNoTests",
-    "test:integration": "vitest run --config vitest.integration.config.ts  --passWithNoTests",
-    "prepare": "husky",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint .",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
-  },
-  "dependencies": {
-    "dotenv": "^18.0.5",
-    "mnemonist": "^0.40.5",
-    "zod": "^4.6.5"
-  },
-  "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@types/node": "^26.6.4",
-    "eslint": "^10.12.0",
-    "eslint-config-prettier": "^10.1.8",
-    "globals": "^17.13.0",
-    "husky": "^9.1.7",
-    "jiti": "^2.7.0",
-    "lint-staged": "^16.4.0",
-    "prettier": "^3.9.9",
-    "tsx": "^4.23.15",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.71.1",
-    "vitest": "^5.0.3"
-  }
+	"name": "email-sniffer",
+	"version": "1.0.0",
+	"description": "Web scraper that generates email of a employee based off their company's website",
+	"homepage": "https://github.com/Plasmatronics/Email-Sniffer#readme",
+	"bugs": {
+		"url": "https://github.com/Plasmatronics/Email-Sniffer/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Plasmatronics/Email-Sniffer.git"
+	},
+	"license": "ISC",
+	"author": "Nicholas Bruno",
+	"type": "module",
+	"main": "index.ts",
+	"scripts": {
+		"start": "tsx server.ts",
+		"dev": "tsx watch server.ts",
+		"test": "vitest",
+		"test:unit": "vitest run --exclude '**/*.integration.test.ts' --passWithNoTests",
+		"test:integration": "vitest run --config vitest.integration.config.ts  --passWithNoTests",
+		"prepare": "husky",
+		"typecheck": "tsc --noEmit",
+		"lint": "eslint .",
+		"format": "prettier --write .",
+		"format:check": "prettier --check ."
+	},
+	"lint-staged": {
+		"*.{js,ts,mjs,cjs,mts,cts}": [
+			"eslint --fix --cache",
+			"prettier --write"
+		],
+		"*.{json,md,yml,yaml}": [
+			"prettier --write"
+		]
+	},
+	"dependencies": {
+		"dotenv": "^18.0.5",
+		"mnemonist": "^0.40.5",
+		"tldts": "^7.4.18",
+		"zod": "^4.6.5"
+	},
+	"devDependencies": {
+		"@eslint/js": "^10.0.1",
+		"@types/node": "^26.6.4",
+		"eslint": "^10.12.0",
+		"eslint-config-prettier": "^10.1.8",
+		"globals": "^17.13.0",
+		"husky": "^9.1.7",
+		"jiti": "^2.7.0",
+		"lint-staged": "^16.4.0",
+		"prettier": "^3.9.9",
+		"tsx": "^4.23.15",
+		"typescript": "^5.9.3",
+		"typescript-eslint": "^8.71.1",
+		"vitest": "^5.0.3"
+	}
 }
