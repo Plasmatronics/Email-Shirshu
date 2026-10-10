@@ -1,5 +1,4 @@
-import { URL } from "node:url";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { DomainValidatorConfig } from "./CompanyDomainValidator.types";
 import {
 	CompanyDomainValidator,
@@ -29,6 +28,10 @@ describe("CompanyDomainValidator", () => {
 				}
 			}),
 		};
+	});
+
+	afterEach(() => {
+		vi.restoreAllMocks();
 	});
 
 	function createValidator({
@@ -139,12 +142,15 @@ describe("CompanyDomainValidator", () => {
 		expect(validator.validateDomain().confidence).toBe(100);
 	});
 
-	test("rejects an invalid candidate domain", () => {
+	test("returns a failed validation result for an invalid candidate domain", () => {
+		vi.spyOn(console, "warn").mockImplementation(() => {});
 		const validator = createValidator({ domain: "not-a-domain" });
 
-		expect(() => validator.validateDomain()).toThrow(
-			"Enter a valid domain name",
-		);
+		expect(validator.validateDomain()).toEqual({
+			confidence: 0,
+			domain: "not-a-domain",
+			pass: false,
+		});
 	});
 
 	test("uses the greatest trusted-page weight across nested path segments", () => {
@@ -168,12 +174,18 @@ describe("CompanyDomainValidator", () => {
 	});
 
 	test("does not award source confidence for a malformed source URL", () => {
+		vi.spyOn(console, "warn").mockImplementation(() => {});
+		vi.mocked(urlToDomainConverter.convert).mockReturnValue("wonderlabs.com");
 		const validator = createValidator({
 			source: "not-a-valid-url",
 			domain: "unrelateddomain.com",
 		});
 
-		expect(validator.validateDomain().confidence).toBe(0);
+		expect(validator.validateDomain()).toEqual({
+			confidence: 0,
+			domain: "unrelateddomain.com",
+			pass: false,
+		});
 	});
 
 	test.each([

@@ -6,7 +6,6 @@ import {
 	VerifiedDomainData,
 } from "./CompanyDomainValidator.types";
 import { TRUSTED_PAGE_PATHS } from "./trustedPagePaths";
-import { URL } from "node:url";
 
 const DEFAULT_DOMAIN_VALIDATOR_CONFIG = {
 	substringMatchPassThreshold: 50,
@@ -59,10 +58,19 @@ export class CompanyDomainValidator {
 		return this.updateConfidence(confidence, addedConfidence);
 	}
 
-	private getUrlConfidenceScore(url: string) {
-		const { pathname } = new URL(url);
+	private getUrlConfidenceScore(url: string): number {
+		let pathName: string;
+		try {
+			const { pathname: parsedPathName } = new URL(url);
+			pathName = parsedPathName;
+		} catch (err) {
+			console.warn(
+				`${err instanceof Error ? err.message : `${url} is not a valid domain name.`}`,
+			);
+			return 0;
+		}
 
-		const segments = pathname.toLowerCase().split("/").filter(Boolean);
+		const segments = pathName.toLowerCase().split("/").filter(Boolean);
 
 		return Math.max(
 			FOUND_ON_COMPANY_PAGE_MIN_SCORE,
@@ -79,6 +87,14 @@ export class CompanyDomainValidator {
 		const unverifiedSLD = this.extractSecondLevelDomain(
 			this.unverifiedDomainData.domain,
 		);
+		if (!companyUrlSLD || !unverifiedSLD) {
+			if (!companyUrlSLD)
+				console.warn(`${companyUrlSLD} is not a valid domain name.`);
+			if (!unverifiedSLD)
+				console.warn(`${unverifiedSLD} is not a valid domain name.`);
+
+			return 0;
+		}
 
 		const shorterStr =
 			companyUrlSLD.length > unverifiedSLD.length
@@ -142,7 +158,7 @@ export class CompanyDomainValidator {
 
 	private extractSecondLevelDomain(domain: string): string {
 		const parsedSLD = getDomainWithoutSuffix(domain);
-		if (!parsedSLD) throw new Error("Enter a valid domain name");
+		if (!parsedSLD) return "";
 
 		return parsedSLD;
 	}
