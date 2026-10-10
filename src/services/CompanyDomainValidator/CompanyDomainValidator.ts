@@ -81,18 +81,25 @@ export class CompanyDomainValidator {
 	}
 
 	private validateSubstringMatch(confidence: number): number {
-		const companyUrlSLD = this.extractSecondLevelDomain(
-			this.urlToDomainConverter.convert(this.companyUrl),
+		const companyUrlOriginal = this.urlToDomainConverter.convert(
+			this.companyUrl,
 		);
+		const unverifiedDomainOriginal = this.unverifiedDomainData.domain;
+
+		const companyUrlSLD = this.extractSecondLevelDomain(companyUrlOriginal);
 		const unverifiedSLD = this.extractSecondLevelDomain(
-			this.unverifiedDomainData.domain,
+			unverifiedDomainOriginal,
 		);
+
 		if (!companyUrlSLD || !unverifiedSLD) {
 			if (!companyUrlSLD)
-				console.warn(`${companyUrlSLD} is not a valid domain name.`);
+				console.warn(
+					`Could not extract second-level domain from company URL: "${companyUrlOriginal}".`,
+				);
 			if (!unverifiedSLD)
-				console.warn(`${unverifiedSLD} is not a valid domain name.`);
-
+				console.warn(
+					`Could not extract second-level domain from unverified domain: "${unverifiedDomainOriginal}".`,
+				);
 			return 0;
 		}
 
