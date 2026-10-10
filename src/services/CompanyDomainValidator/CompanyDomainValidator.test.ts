@@ -1,5 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import type { DomainValidatorConfig } from "./CompanyDomainValidator.types";
+import {
+	VerificationResult,
+	type DomainValidatorConfig,
+} from "./CompanyDomainValidator.types";
 import {
 	CompanyDomainValidator,
 	FOUND_ON_COMPANY_PAGE_MIN_SCORE,
@@ -57,7 +60,7 @@ describe("CompanyDomainValidator", () => {
 		expect(validator.validateDomain()).toEqual({
 			confidence: 100,
 			domain: "wonderlabs.com",
-			pass: true,
+			verificationResult: VerificationResult.Pass,
 		});
 	});
 
@@ -78,7 +81,7 @@ describe("CompanyDomainValidator", () => {
 		expect(res).toEqual({
 			confidence: res.confidence,
 			domain: "wonder.com",
-			pass: true,
+			verificationResult: VerificationResult.Pass,
 		});
 	});
 
@@ -113,8 +116,9 @@ describe("CompanyDomainValidator", () => {
 		const validator = createValidator({
 			source: "https://unrelated.example/contact",
 			config: {
-				substringMatchPassThreshold: 70,
+				substringMatchPassThreshold: 100,
 				overallPassThreshold: 65,
+				overallFailMaximum: 15,
 			},
 		});
 
@@ -126,10 +130,13 @@ describe("CompanyDomainValidator", () => {
 			config: {
 				substringMatchPassThreshold: 50,
 				overallPassThreshold: 100,
+				overallFailMaximum: 100,
 			},
 		});
 
-		expect(validator.validateDomain().pass).toBe(false);
+		expect(validator.validateDomain().verificationResult).toBe(
+			VerificationResult.Fail,
+		);
 	});
 
 	test("supports domains with compound public suffixes", () => {
@@ -149,7 +156,7 @@ describe("CompanyDomainValidator", () => {
 		expect(validator.validateDomain()).toEqual({
 			confidence: 0,
 			domain: "not-a-domain",
-			pass: false,
+			verificationResult: VerificationResult.Fail,
 		});
 	});
 
@@ -184,8 +191,18 @@ describe("CompanyDomainValidator", () => {
 		expect(validator.validateDomain()).toEqual({
 			confidence: 0,
 			domain: "unrelateddomain.com",
-			pass: false,
+			verificationResult: VerificationResult.Fail,
 		});
+	});
+
+	test("properly returns result as uncertain in grey cases", () => {
+		const validator = createValidator({
+			source: "unrelateddomain.com",
+		});
+
+		const res = validator.validateDomain();
+
+		expect(res.verificationResult).toEqual(VerificationResult.Uncertain);
 	});
 
 	test.each([

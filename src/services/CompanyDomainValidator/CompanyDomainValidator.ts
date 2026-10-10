@@ -3,6 +3,7 @@ import { UrlToDomainConverter } from "../UrlToDomainConverter";
 import {
 	DomainValidatorConfig,
 	UnverifiedDomainData,
+	VerificationResult,
 	VerifiedDomainData,
 } from "./CompanyDomainValidator.types";
 import { TRUSTED_PAGE_PATHS } from "./trustedPagePaths";
@@ -10,6 +11,7 @@ import { TRUSTED_PAGE_PATHS } from "./trustedPagePaths";
 const DEFAULT_DOMAIN_VALIDATOR_CONFIG = {
 	substringMatchPassThreshold: 50,
 	overallPassThreshold: 65,
+	overallFailMaximum: 20,
 };
 
 const MIN_ALLOWABLE_DOMAIN_LENGTH = 3;
@@ -32,9 +34,17 @@ export class CompanyDomainValidator {
 
 		return {
 			confidence: confidence,
-			pass: confidence >= this.domainValidatorConfig.overallPassThreshold,
+			verificationResult: this.getVerificationResult(confidence),
 			domain: this.unverifiedDomainData.domain,
 		};
+	}
+
+	private getVerificationResult(confidence: number): VerificationResult {
+		if (confidence >= this.domainValidatorConfig.overallPassThreshold)
+			return VerificationResult.Pass;
+		else if (confidence <= this.domainValidatorConfig.overallFailMaximum)
+			return VerificationResult.Fail;
+		else return VerificationResult.Uncertain;
 	}
 
 	private updateConfidence(confidence: number, amount: number): number {
