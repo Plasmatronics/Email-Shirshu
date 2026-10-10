@@ -1,10 +1,12 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import type { DomainValidatorConfig } from "./CompanyDomainValidator.types";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import {
+	VerificationResult,
+	type DomainValidatorConfig,
+} from "./CompanyDomainValidator.types";
 import {
 	CompanyDomainValidator,
 	FOUND_ON_COMPANY_PAGE_MIN_SCORE,
 } from "./CompanyDomainValidator";
-import { UrlToDomainConverter } from "../UrlToDomainConverter";
 
 const COMPANY_URL = "https://www.wonderlabs.com";
 
@@ -16,20 +18,6 @@ interface ValidatorOptions {
 }
 
 describe("CompanyDomainValidator", () => {
-	let urlToDomainConverter: UrlToDomainConverter;
-
-	beforeEach(() => {
-		urlToDomainConverter = {
-			convert: vi.fn((url: string) => {
-				try {
-					return new URL(url).hostname.replace(/^www\./, "");
-				} catch {
-					return url;
-				}
-			}),
-		};
-	});
-
 	afterEach(() => {
 		vi.restoreAllMocks();
 	});
@@ -40,12 +28,7 @@ describe("CompanyDomainValidator", () => {
 		companyUrl = COMPANY_URL,
 		config,
 	}: ValidatorOptions = {}): CompanyDomainValidator {
-		return new CompanyDomainValidator(
-			{ source, domain },
-			companyUrl,
-			urlToDomainConverter,
-			config,
-		);
+		return new CompanyDomainValidator({ source, domain }, companyUrl, config);
 	}
 
 	test("passes an exact company-domain match at maximum confidence", () => {
@@ -57,7 +40,7 @@ describe("CompanyDomainValidator", () => {
 		expect(validator.validateDomain()).toEqual({
 			confidence: 100,
 			domain: "wonderlabs.com",
-			pass: true,
+			verificationResult: VerificationResult.Pass,
 		});
 	});
 
@@ -73,12 +56,11 @@ describe("CompanyDomainValidator", () => {
 
 	test("combines a trusted source-page score with a qualifying substring match", () => {
 		const validator = createValidator();
-		const res = validator.validateDomain();
 
-		expect(res).toEqual({
-			confidence: res.confidence,
+		expect(validator.validateDomain()).toEqual({
+			confidence: 75,
 			domain: "wonder.com",
-			pass: true,
+			verificationResult: VerificationResult.Pass,
 		});
 	});
 
@@ -113,8 +95,9 @@ describe("CompanyDomainValidator", () => {
 		const validator = createValidator({
 			source: "https://unrelated.example/contact",
 			config: {
-				substringMatchPassThreshold: 70,
+				substringMatchPassThreshold: 100,
 				overallPassThreshold: 65,
+				overallFailMaximum: 15,
 			},
 		});
 
@@ -126,10 +109,27 @@ describe("CompanyDomainValidator", () => {
 			config: {
 				substringMatchPassThreshold: 50,
 				overallPassThreshold: 100,
+				overallFailMaximum: 20,
 			},
 		});
 
-		expect(validator.validateDomain().pass).toBe(false);
+		expect(validator.validateDomain().verificationResult).toBe(
+			VerificationResult.Uncertain,
+		);
+	});
+
+	test("honors a custom overall fail maximum", () => {
+		const validator = createValidator({
+			config: {
+				substringMatchPassThreshold: 50,
+				overallPassThreshold: 100,
+				overallFailMaximum: 75,
+			},
+		});
+
+		expect(validator.validateDomain().verificationResult).toBe(
+			VerificationResult.Fail,
+		);
 	});
 
 	test("supports domains with compound public suffixes", () => {
@@ -149,7 +149,7 @@ describe("CompanyDomainValidator", () => {
 		expect(validator.validateDomain()).toEqual({
 			confidence: 0,
 			domain: "not-a-domain",
-			pass: false,
+			verificationResult: VerificationResult.Fail,
 		});
 	});
 
@@ -175,7 +175,6 @@ describe("CompanyDomainValidator", () => {
 
 	test("does not award source confidence for a malformed source URL", () => {
 		vi.spyOn(console, "warn").mockImplementation(() => {});
-		vi.mocked(urlToDomainConverter.convert).mockReturnValue("wonderlabs.com");
 		const validator = createValidator({
 			source: "not-a-valid-url",
 			domain: "unrelateddomain.com",
@@ -184,8 +183,29 @@ describe("CompanyDomainValidator", () => {
 		expect(validator.validateDomain()).toEqual({
 			confidence: 0,
 			domain: "unrelateddomain.com",
-			pass: false,
+			verificationResult: VerificationResult.Fail,
 		});
+	});
+
+	test("returns a failed validation result for a malformed company URL", () => {
+		vi.spyOn(console, "warn").mockImplementation(() => {});
+		const validator = createValidator({ companyUrl: "not-a-valid-url" });
+
+		expect(validator.validateDomain()).toEqual({
+			confidence: 0,
+			domain: "wonder.com",
+			verificationResult: VerificationResult.Fail,
+		});
+	});
+
+	test("properly returns result as uncertain in grey cases", () => {
+		const validator = createValidator({
+			source: "unrelateddomain.com",
+		});
+
+		const res = validator.validateDomain();
+
+		expect(res.verificationResult).toEqual(VerificationResult.Uncertain);
 	});
 
 	test.each([

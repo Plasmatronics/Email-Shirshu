@@ -1,8 +1,8 @@
-import { getDomainWithoutSuffix } from "tldts";
-import { UrlToDomainConverter } from "../UrlToDomainConverter";
+import { getDomainWithoutSuffix, getFullDomain } from "tldts";
 import {
 	DomainValidatorConfig,
 	UnverifiedDomainData,
+	VerificationResult,
 	VerifiedDomainData,
 } from "./CompanyDomainValidator.types";
 import { TRUSTED_PAGE_PATHS } from "./trustedPagePaths";
@@ -10,6 +10,7 @@ import { TRUSTED_PAGE_PATHS } from "./trustedPagePaths";
 const DEFAULT_DOMAIN_VALIDATOR_CONFIG = {
 	substringMatchPassThreshold: 50,
 	overallPassThreshold: 65,
+	overallFailMaximum: 20,
 };
 
 const MIN_ALLOWABLE_DOMAIN_LENGTH = 3;
@@ -21,7 +22,6 @@ export class CompanyDomainValidator {
 	constructor(
 		private unverifiedDomainData: UnverifiedDomainData,
 		private companyUrl: string,
-		private urlToDomainConverter: UrlToDomainConverter,
 		private domainValidatorConfig: DomainValidatorConfig = DEFAULT_DOMAIN_VALIDATOR_CONFIG,
 	) {}
 
@@ -32,9 +32,17 @@ export class CompanyDomainValidator {
 
 		return {
 			confidence: confidence,
-			pass: confidence >= this.domainValidatorConfig.overallPassThreshold,
+			verificationResult: this.getVerificationResult(confidence),
 			domain: this.unverifiedDomainData.domain,
 		};
+	}
+
+	private getVerificationResult(confidence: number): VerificationResult {
+		if (confidence >= this.domainValidatorConfig.overallPassThreshold)
+			return VerificationResult.Pass;
+		else if (confidence <= this.domainValidatorConfig.overallFailMaximum)
+			return VerificationResult.Fail;
+		else return VerificationResult.Uncertain;
 	}
 
 	private updateConfidence(confidence: number, amount: number): number {
@@ -42,12 +50,21 @@ export class CompanyDomainValidator {
 	}
 
 	private validateDomainSource(confidence: number): number {
-		const normalizedSourceUrl = this.urlToDomainConverter.convert(
+		const normalizedSourceUrl = this.normalizeUrlToDomain(
 			this.unverifiedDomainData.source,
 		);
-		const normalizedCompanyUrl = this.urlToDomainConverter.convert(
-			this.companyUrl,
-		);
+		const normalizedCompanyUrl = this.normalizeUrlToDomain(this.companyUrl);
+		if (!normalizedSourceUrl || !normalizedCompanyUrl) {
+			if (!normalizedSourceUrl)
+				console.warn(
+					`Could not extract domain from source URL: "${normalizedSourceUrl}".`,
+				);
+			if (!normalizedCompanyUrl)
+				console.warn(
+					`Could not extract domain from company URL: "${normalizedCompanyUrl}".`,
+				);
+			return 0;
+		}
 
 		let addedConfidence = 0;
 		if (normalizedCompanyUrl === normalizedSourceUrl)
@@ -81,10 +98,15 @@ export class CompanyDomainValidator {
 	}
 
 	private validateSubstringMatch(confidence: number): number {
-		const companyUrlOriginal = this.urlToDomainConverter.convert(
-			this.companyUrl,
-		);
+		const companyUrlOriginal = this.normalizeUrlToDomain(this.companyUrl);
 		const unverifiedDomainOriginal = this.unverifiedDomainData.domain;
+		if (!companyUrlOriginal) {
+			console.warn(
+				`Could not extract domain from company URL: "${companyUrlOriginal}".`,
+			);
+
+			return 0;
+		}
 
 		const companyUrlSLD = this.extractSecondLevelDomain(companyUrlOriginal);
 		const unverifiedSLD = this.extractSecondLevelDomain(
@@ -168,5 +190,12 @@ export class CompanyDomainValidator {
 		if (!parsedSLD) return "";
 
 		return parsedSLD;
+	}
+
+	private normalizeUrlToDomain(url: string): string {
+		const parsedDomain = getFullDomain(url);
+		if (!parsedDomain) return "";
+
+		return parsedDomain;
 	}
 }
