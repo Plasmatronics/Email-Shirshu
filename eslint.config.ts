@@ -17,19 +17,14 @@ export default defineConfig([
 			js,
 		},
 		extends: ["js/recommended"],
-		rules: {
-			"no-unused-vars": "off",
-			"@typescript-eslint/no-unused-vars": "warn",
-		},
-	},
-
-	{
-		files: ["server/**/*.{js,ts,mjs,cjs,mts,cts}"],
-
 		languageOptions: {
 			globals: {
 				...globals.node,
 			},
+		},
+		rules: {
+			"no-unused-vars": "off",
+			"@typescript-eslint/no-unused-vars": "warn",
 		},
 	},
 
