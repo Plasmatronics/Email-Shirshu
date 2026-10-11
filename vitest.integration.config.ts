@@ -1,4 +1,7 @@
-import { configDefaults, defineConfig } from "vitest/config";
+import { configDotenv } from "dotenv";
+import { defineConfig } from "vitest/config";
+
+configDotenv({ path: "./.env" });
 
 export default defineConfig({
 	test: {
@@ -6,4 +9,3 @@ export default defineConfig({
 		clearMocks: true,
 	},
 });
-
